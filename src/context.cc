@@ -110,8 +110,8 @@ namespace pulse {
     }else{
       Local<Object> info = Object::New(p->isolate);
 
-#define field(_type_, _name_, ...) info->Set(String::NewFromOneByte(p->isolate, (const uint8_t*) #_name_), _type_::New(p->isolate, i->__VA_ARGS__ _name_))
-#define field_str(_name_, ...) info->Set(String::NewFromOneByte(p->isolate, (const uint8_t*) #_name_), String::NewFromUtf8(p->isolate, i->__VA_ARGS__ _name_))
+#define field(_type_, _name_, ...) info->Set(String::NewFromOneByte(p->isolate, (const uint8_t*) #_name_, NewStringType::kNormal).ToLocalChecked(), _type_::New(p->isolate, i->__VA_ARGS__ _name_))
+#define field_str(_name_, ...) info->Set(String::NewFromOneByte(p->isolate, (const uint8_t*) #_name_, NewStringType::kNormal).ToLocalChecked(), String::NewFromUtf8(p->isolate, i->__VA_ARGS__ _name_))
       field_str(name);
       field(Number, index);
       field_str(description);
@@ -152,7 +152,7 @@ namespace pulse {
 
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 
-    tpl->SetClassName(String::NewFromOneByte(isolate, (const uint8_t*)"PulseAudioContext"));
+    tpl->SetClassName(String::NewFromOneByte(isolate, (const uint8_t*)"PulseAudioContext", NewStringType::kNormal).ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     NODE_SET_PROTOTYPE_METHOD(tpl, "connect", Connect);
@@ -161,7 +161,7 @@ namespace pulse {
 
     Local<Function> cfn = tpl->GetFunction();
 
-    target->Set(String::NewFromOneByte(isolate, (const uint8_t*) "Context"), cfn);
+    target->Set(String::NewFromOneByte(isolate, (const uint8_t*) "Context", NewStringType::kNormal).ToLocalChecked(), cfn);
 
     AddEmptyObject(isolate, cfn, flags);
     DefineConstant(isolate, flags, noflags, PA_CONTEXT_NOFLAGS);
@@ -189,8 +189,7 @@ namespace pulse {
     JS_ASSERT(isolate, args.IsConstructCall());
 
     JS_ASSERT(isolate, args.Length() == 2);
-
-    String::Utf8Value *client_name = NULL;
+String::Utf8Value *client_name = NULL;
 
     if(args[0]->IsString()){
       client_name = new String::Utf8Value(args[0]->ToString());
